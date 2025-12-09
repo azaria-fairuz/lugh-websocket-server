@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>websocket client</title>
+</head>
+<body>
+  <h1>frames from gRPC server</h1>
+  <h6 id="last-update"></h6>
+  <div id="frames"></div>
+
+  <script>
+    const ws = new WebSocket("ws://localhost:8502/frames?type=clients");
+
+    ws.onopen = () => {
+      console.log("Connected to WebSocket server");
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const now = new Date();
+        const msg = JSON.parse(event.data);
+        const cameraId = msg.camera_id;
+        const frameBase64 = msg.data;
+        const height = msg.height;
+        const width = msg.width;
+
+        const img = new Image();
+        img.src = "data:image/jpeg;base64," + frameBase64;
+        img.width = width;
+        img.height = height;
+
+        const container = document.getElementById("frames");
+        const lastUpdate = document.getElementById("last-update");
+        
+        container.innerHTML = `<img src="data:image/jpeg;base64,${frameBase64}" width="${width}" height="${height}">`;
+        lastUpdate.innerHTML = now.toISOString();
+        // console.log(now.toISOString());
+
+      } catch (err) {
+        console.error("Failed to parse message:", err);
+      }
+    };
+
+    ws.onclose = () => {
+      console.log("Disconnected from WebSocket server");
+    };
+  </script>
+</body>
+</html>
+
